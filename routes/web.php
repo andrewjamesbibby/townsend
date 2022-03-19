@@ -13,6 +13,5 @@ Route::get('legacy/products', [LegacyProductsController::class, 'index']);
 Route::get('legacy/products/{section}', [LegacyProductsController::class, 'show']);
 
 // Refactored Routes
-Route::get('/products', [ProductsController::class, 'index']);
-Route::get('/products/{section}', [ProductsController::class, 'show']);
+Route::get('/products/{section?}',ProductsController::class);
 
