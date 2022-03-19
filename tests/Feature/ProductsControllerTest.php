@@ -115,7 +115,7 @@ class ProductsControllerTest extends TestCase
     public function product_is_not_shown_if_disabled_by_country_code()
     {
         // Add 'GB' to the products disabled country list
-        StoreProduct::factory()->create(['disabled_countries' => 'GB']);
+        StoreProduct::factory()->disabled('GB')->create(['disabled_countries' => 'GB']);
 
         $this->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>
@@ -128,7 +128,7 @@ class ProductsControllerTest extends TestCase
     public function product_is_not_shown_if_unavailable()
     {
         // Create an 'unavailable' product
-        StoreProduct::factory()->create(['available' => 0]);
+        StoreProduct::factory()->unavailable()->create();
 
         $this->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>
@@ -141,7 +141,7 @@ class ProductsControllerTest extends TestCase
     public function product_is_not_shown_if_deleted()
     {
         // Create an 'deleted' product
-        StoreProduct::factory()->create(['deleted' => 1]);
+        StoreProduct::factory()->deleted()->create();
 
         $this->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>

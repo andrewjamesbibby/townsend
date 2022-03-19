@@ -40,20 +40,6 @@ class StoreProductFactory extends Factory
     }
 
     /**
-     * Indicate the product is disabled in a given region
-     *
-     * @return \Illuminate\Database\Eloquent\Factories\Factory
-     */
-    public function disabled($disabled = "GB")
-    {
-        return $this->state(function (array $attributes) use ($disabled) {
-            return [
-                'disabled_countries' => $disabled,
-            ];
-        });
-    }
-
-    /**
      * Indicate the product is unavailable
      *
      * @return \Illuminate\Database\Eloquent\Factories\Factory
