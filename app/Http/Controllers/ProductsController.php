@@ -149,7 +149,7 @@ class ProductsController extends Controller
         $query->orderBy($sort_field, $sort_direction);
 
         // Paginate response
-        $products = $query->simplePaginate($perPage);
+        $products = $query->simplePaginate(perPage: $perPage, page: $page);
 
         // Output paginated results through resource collection
         return StoreProductsResource::collection($products);

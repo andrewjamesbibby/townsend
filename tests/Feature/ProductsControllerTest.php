@@ -218,7 +218,17 @@ class ProductsControllerTest extends TestCase
     }
 
     /** @test */
-    public function can_return_results_at_specified_page(){}
+    public function can_return_results_at_specified_page()
+    {
+        // Create 4 records
+        StoreProduct::factory(4)->create();
+
+        // Display 2 pages with 2 records
+        $response = $this->getJson('/products?per_page=2&page=2')->dump();
+
+        // Confirm that query parameter 'page' return requested page
+        $this->assertTrue($response['meta']['current_page'] == 2);
+    }
 
     /** @test */
     public function can_list_products_by_specified_section_id_or_description()
