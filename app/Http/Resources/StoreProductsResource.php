@@ -17,7 +17,7 @@ class StoreProductsResource extends JsonResource
         return [
             "image"        => $this->getImageUrl(),
             "id"           => $this->id,
-            "artist"       => $this->artist->name,
+            "artist"       => $this->artist->name ?? '',
             "title"        => $this->getDisplayName(),
             "description"  => $this->description,
             "price"        => $this->getPriceInCurrency(),
