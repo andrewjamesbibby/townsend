@@ -41,7 +41,7 @@ The following query parameters can be sent with each GET request.
 * There was double '//' in the original response for images. This is removed in the new output.
 * Ordering by name e.g AZ, ZA is performed on the 'name' column as expected - however presentation logic can use the display name which could be different depending on its length and appear broken depending on the data being used.
 * Ordering by price doesn't account for changes in currency because it occurs on the 'price' column - (although likely this will still work as they will probably be in the same pricing scale). 
-* The 'deleted' column would perhaps be better altered to deleted_at to provide soft deletes and/or and audit of when a particular product was removed.
+* The 'deleted' column would perhaps be better altered to deleted_at to provide soft deletes and/or audit of when a particular product was removed.
 * Not sure why valid images are determined by image_format > 2 - seems a really odd check to make (better to validate against list of supported valid image types)
 * Disabled countries column would be better as a json column to allow for easier filtering or linked in another table.
 

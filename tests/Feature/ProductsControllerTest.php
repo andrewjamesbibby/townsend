@@ -145,8 +145,8 @@ class ProductsControllerTest extends TestCase
 
         $this->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>
-            $json->has('data', 0)
-                ->etc()
+                $json->has('data', 0)
+                    ->etc()
             );
     }
 
@@ -178,8 +178,8 @@ class ProductsControllerTest extends TestCase
         $this->withSession(['preview_mode' => true])
             ->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>
-            $json->has('data', 1)
-                ->etc()
+                $json->has('data', 1)
+                    ->etc()
             );
     }
 
@@ -292,15 +292,15 @@ class ProductsControllerTest extends TestCase
                 ->has('links')
                 ->has('data', 1)
                 ->has('data.0', fn ($json) =>
-                $json->where('image', StoreProduct::IMAGES_DOMAIN . $product1->id . $product1->image_format)
-                    ->where('id', $product1->id)
-                    ->where('artist', $this->artist->name)
-                    ->where('title', $product1->display_name)
-                    ->where('description', $product1->description)
-                    ->where('price', $product1->price)
-                    ->where('format', $product1->type)
-                    ->where('release_date', $product1->release_date)
-                    ->etc()
+                    $json->where('image', StoreProduct::IMAGES_DOMAIN . $product1->id . $product1->image_format)
+                        ->where('id', $product1->id)
+                        ->where('artist', $this->artist->name)
+                        ->where('title', $product1->display_name)
+                        ->where('description', $product1->description)
+                        ->where('price', $product1->price)
+                        ->where('format', $product1->type)
+                        ->where('release_date', $product1->release_date)
+                        ->etc()
                 )
             );
     }
@@ -308,9 +308,9 @@ class ProductsControllerTest extends TestCase
     /** @test */
     public function can_order_products_by_price_asc()
     {
-        $cheap_product = StoreProduct::factory()->create(['price' => 1.99]);
-        $average_product = StoreProduct::factory()->create(['price' => 12.99]);
-        $expensive_product = StoreProduct::factory()->create(['price' => 89.99]);
+        $cheap_product = StoreProduct::factory()->create(['price' => '1.99']);
+        $average_product = StoreProduct::factory()->create(['price' => '12.99']);
+        $expensive_product = StoreProduct::factory()->create(['price' => '89.99']);
 
         // Confirm can sort low to high (Asc)
         $this->getJson("/products?sort=low")
@@ -333,25 +333,25 @@ class ProductsControllerTest extends TestCase
     /** @test */
     public function can_order_products_by_price_desc()
     {
-        $cheap_product = StoreProduct::factory()->create(['price' => 1.99]);
-        $average_product = StoreProduct::factory()->create(['price' => 12.99]);
-        $expensive_product = StoreProduct::factory()->create(['price' => 89.99]);
+        $cheap_product = StoreProduct::factory()->create(['price' => '1.99']);
+        $average_product = StoreProduct::factory()->create(['price' => '12.99']);
+        $expensive_product = StoreProduct::factory()->create(['price' => '89.99']);
 
         // Confirm can sort high to low (Desc)
         $this->getJson("/products?sort=high")
             ->assertJson(fn (AssertableJson $json) =>
-            $json->has('links')
-                ->has('meta')
-                ->has('data', 3)
-                ->has('data.0', fn ($json) =>
-                $json->where('price', $expensive_product->price)->etc()
-                )
-                ->has('data.1', fn ($json) =>
-                $json->where('price', $average_product->price)->etc()
-                )
-                ->has('data.2', fn ($json) =>
-                $json->where('price', $cheap_product->price)->etc()
-                )
+                $json->has('links')
+                    ->has('meta')
+                    ->has('data', 3)
+                    ->has('data.0', fn ($json) =>
+                    $json->where('price', $expensive_product->price)->etc()
+                    )
+                    ->has('data.1', fn ($json) =>
+                    $json->where('price', $average_product->price)->etc()
+                    )
+                    ->has('data.2', fn ($json) =>
+                    $json->where('price', $cheap_product->price)->etc()
+                    )
             );
     }
 
@@ -365,18 +365,18 @@ class ProductsControllerTest extends TestCase
         // Confirm can sort old to new (Asc)
         $this->getJson("/products?sort=old")
             ->assertJson(fn (AssertableJson $json) =>
-            $json->has('links')
-                ->has('meta')
-                ->has('data', 3)
-                ->has('data.0', fn ($json) =>
-                    $json->where('release_date', $old_release->release_date->format('Y-m-d'))->etc()
-                )
-                ->has('data.1', fn ($json) =>
-                    $json->where('release_date', $mid_release->release_date->format('Y-m-d'))->etc()
-                )
-                ->has('data.2', fn ($json) =>
-                    $json->where('release_date', $new_release->release_date->format('Y-m-d'))->etc()
-                )
+                $json->has('links')
+                    ->has('meta')
+                    ->has('data', 3)
+                    ->has('data.0', fn ($json) =>
+                        $json->where('release_date', $old_release->release_date->format('Y-m-d'))->etc()
+                    )
+                    ->has('data.1', fn ($json) =>
+                        $json->where('release_date', $mid_release->release_date->format('Y-m-d'))->etc()
+                    )
+                    ->has('data.2', fn ($json) =>
+                        $json->where('release_date', $new_release->release_date->format('Y-m-d'))->etc()
+                    )
             );
     }
 
@@ -394,13 +394,13 @@ class ProductsControllerTest extends TestCase
                 ->has('meta')
                 ->has('data', 3)
                 ->has('data.0', fn ($json) =>
-                $json->where('release_date', $new_release->release_date->format('Y-m-d'))->etc()
+                    $json->where('release_date', $new_release->release_date->format('Y-m-d'))->etc()
                 )
                 ->has('data.1', fn ($json) =>
-                $json->where('release_date', $mid_release->release_date->format('Y-m-d'))->etc()
+                    $json->where('release_date', $mid_release->release_date->format('Y-m-d'))->etc()
                 )
                 ->has('data.2', fn ($json) =>
-                $json->where('release_date', $old_release->release_date->format('Y-m-d'))->etc()
+                    $json->where('release_date', $old_release->release_date->format('Y-m-d'))->etc()
                 )
             );
     }
