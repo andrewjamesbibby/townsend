@@ -84,11 +84,13 @@ class StoreProduct extends Model
         $currency = strtoupper($currency);
 
         // Match and return the appropriate product price
-        return (float) match($currency) {
+        $price = match($currency) {
             "GBP"   => $this->price,
             "EUR"   => $this->euro_price,
             "USD"   => $this->dollar_price,
             default => $this->price
         };
+
+        return number_format((float) $price, 2);
     }
 }
