@@ -20,6 +20,6 @@ class Section extends Model
             'id',
             'id'
         )->withPivot('position')
-        ->orderBy('position', 'ASC');
+            ->orderBy('position', 'ASC');
     }
 }

@@ -27,8 +27,7 @@ class StoreProduct extends Model
             'section_id',
             'id',
             'id'
-        )
-            ->withPivot('position')
+        )->withPivot('position')
             ->orderBy('position', 'ASC');
     }
 

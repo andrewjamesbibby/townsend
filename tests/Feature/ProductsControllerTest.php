@@ -448,21 +448,60 @@ class ProductsControllerTest extends TestCase
         // Confirm can sort name (Desc)
         $this->getJson("/products?sort=za")
             ->assertJson(fn (AssertableJson $json) =>
-            $json->has('links')
-                ->has('meta')
-                ->has('data', 3)
-                ->has('data.0', fn ($json) =>
-                $json->where('title', $c_product->name)->etc()
-                )
-                ->has('data.1', fn ($json) =>
-                $json->where('title', $b_product->name)->etc()
-                )
-                ->has('data.2', fn ($json) =>
-                $json->where('title', $a_product->name)->etc()
-                )
-            );
+                $json->has('links')
+                    ->has('meta')
+                    ->has('data', 3)
+                    ->has('data.0', fn ($json) =>
+                        $json->where('title', $c_product->name)->etc()
+                    )
+                    ->has('data.1', fn ($json) =>
+                        $json->where('title', $b_product->name)->etc()
+                    )
+                    ->has('data.2', fn ($json) =>
+                        $json->where('title', $a_product->name)->etc()
+                    )
+                );
     }
 
     /** @test */
-    public function products_default_ordered_when_no_sort_specified(){}
+    public function products_default_ordered_when_no_sort_specified()
+    {
+        // Create products
+        $product1 = StoreProduct::factory()->create(['position' =>  24, 'release_date' => now()]);
+        $product2 = StoreProduct::factory()->create(['position' =>  1, 'release_date' => now()]);
+        $product3 = StoreProduct::factory()->create(['position' =>  6, 'release_date' => now()]);
+        $product4 = StoreProduct::factory()->create(['position' =>  6, 'release_date' => now()->subWeek()]);
+
+        // Result should show products in order of positions specified
+        // Products order first by position ASC, then release_date DESC
+
+        // Expected order:
+        // $product2 : position 1
+        // $product3 : position 6
+        // $product4 : position 6
+        // $product1 : position 24
+
+        $this->getJson("/products")
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('meta')
+                    ->has('links')
+                    ->has('data', 4)
+                    ->has('data.0', fn ($json) =>
+                        $json->where('id', $product2->id)
+                            ->etc()
+                    )
+                    ->has('data.1', fn ($json) =>
+                        $json->where('id', $product3->id)
+                            ->etc()
+                    )
+                    ->has('data.2', fn ($json) =>
+                        $json->where('id', $product4->id)
+                            ->etc()
+                    )
+                    ->has('data.3', fn ($json) =>
+                        $json->where('id', $product1->id)
+                            ->etc()
+                    )
+                );
+    }
 }

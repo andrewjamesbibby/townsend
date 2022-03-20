@@ -97,4 +97,29 @@ trait StoreProductScopes
             });
         });
     }
+
+    /**
+     * Scope to apply column sorting with fallback to default sorting
+     *
+     * @param $query
+     * @param  string|null  $field
+     * @param  string|null  $direction
+     * @return mixed
+     */
+    public function scopeApplySort($query, ?string $field = null, ?string $direction = null)
+    {
+        ray($field);
+        ray($direction);
+
+        // Sort parameters provided, order by the given field/direction
+        if($field && $direction) {
+            return $query->orderBy($field, $direction);
+        }
+
+        ray('applying default sort....');
+
+        // Otherwise, default ordering for all results
+        return $query->orderBy('store_products.position', 'ASC')
+                    ->orderBy('release_date', 'DESC');
+    }
 }

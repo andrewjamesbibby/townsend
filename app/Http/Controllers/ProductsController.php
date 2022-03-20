@@ -13,12 +13,6 @@ class ProductsController extends Controller
 
     public $storeId;
 
-    private $per_page;
-
-    private $page;
-
-    private $sort;
-
     public function __construct(Request $request)
     {
         /* As the system manages multiple stores a storeBuilder instance would
@@ -32,31 +26,20 @@ class ProductsController extends Controller
         if(!$this->storeExists($this->storeId)) {
             abort('404', 'The specified store cannot be found!');
         }
-
-        /* These request parameters are common to all requests so gather
-        them here in the constructor and assign them as class properties  */
-        $this->per_page = $request->get('per_page');
-        $this->page = $request->get('page');
-        $this->sort = $request->get('sort');
     }
 
     /**
      * Products Controller - Lists all products (by optional section)
      *
+     * @param  null  $section
+     * @throws \Psr\Container\ContainerExceptionInterface
+     * @throws \Psr\Container\NotFoundExceptionInterface
      * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
      */
     public function __invoke($section = null)
     {
-        // First validate and set request values
-        $perPage = $this->determinePerPage($this->per_page);
-        $page = $this->determinePage($this->page);
-        [$sort_field, $sort_direction] = $this->determineSort($this->sort);
-
-        // Determine geographic location
-        $geocode = $this->getGeocode()['country'];
-
-        // Start query (eager load artist to prevent any n+1)
-        $query = StoreProduct::with(['artist']);
+        // Start query (eager load to prevent any n+1)
+        $query = StoreProduct::with(['artist','sections']);
 
         // Constrain by store
         $query->forStore($this->storeId);
@@ -68,7 +51,7 @@ class ProductsController extends Controller
         $query->available();
 
         // Products with future launch date should not be shown (unless in preview mode)
-        if(! $this->isPreviewMode()) {
+        if (! $this->isPreviewMode()) {
             $query->launched();
         }
 
@@ -76,16 +59,19 @@ class ProductsController extends Controller
         $query->notRemoved();
 
         // Products disabled by geocode filtered out
-        $query->excludeCountries($geocode);
+        $query->excludeCountries($this->getGeocode()['country']);
 
-        // Apply sorting constraints
-        $query->orderBy($sort_field, $sort_direction);
+        // Determine field/column and apply sort
+        [$sort_field, $sort_direction] = $this->getSort();
+        $query->applySort($sort_field, $sort_direction);
 
         // Paginate response
-        $products = $query->simplePaginate(perPage: $perPage, page: $page);
+        $products = $query->simplePaginate(
+            perPage: $this->getPerPage(),
+            page: $this->getPage()
+        );
 
         // Output paginated results through resource collection
         return StoreProductsResource::collection($products);
     }
-
 }
