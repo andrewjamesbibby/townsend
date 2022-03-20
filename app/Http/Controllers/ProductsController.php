@@ -135,7 +135,7 @@ class ProductsController extends Controller
             });
         }
 
-        // Products with remove_date in the past should not be shown)
+        // Products with remove_date in the past should not be shown
         $query->where(function($query) {
            $query->where('remove_date', '=', '0000-00-00 00:00:00');
            $query->orWhere('remove_date', '>', now());

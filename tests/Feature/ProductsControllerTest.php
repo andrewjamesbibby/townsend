@@ -115,7 +115,7 @@ class ProductsControllerTest extends TestCase
     public function product_is_not_shown_if_disabled_by_country_code()
     {
         // Add 'GB' to the products disabled country list
-        StoreProduct::factory()->disabled('GB')->create(['disabled_countries' => 'GB']);
+        StoreProduct::factory()->create(['disabled_countries' => 'GB']);
 
         $this->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>
@@ -190,17 +190,24 @@ class ProductsControllerTest extends TestCase
     }
 
     /** @test */
-    public function can_limit_results_to_specified_number_of_records()
+    public function can_limit_results_to_specified_number()
     {
-        // Create 20 products
-        StoreProduct::factory(20)->create();
+        // Create 10 products
+        StoreProduct::factory(10)->create();
 
         // Confirm per_page=5 returns only 5 products
         $this->getJson('/products?per_page=5')
             ->assertJson(fn (AssertableJson $json) =>
-            $json->has('data', 5)
-                ->etc()
+                $json->has('data', 5)
+                    ->etc()
             );
+    }
+
+    /** @test */
+    public function negative_per_page_value_returns_default_page_limit()
+    {
+        // Create 10 products
+        StoreProduct::factory(10)->create();
 
         // Confirm per_page=-1 returns default 8 products
         $this->getJson('/products?per_page=-1')
@@ -208,9 +215,16 @@ class ProductsControllerTest extends TestCase
                 $json->has('data', 8)
                     ->etc()
             );
+    }
+
+    /** @test */
+    public function non_numeric_per_page_value_returns_default_page_limit()
+    {
+        // Create 10 products
+        StoreProduct::factory(10)->create();
 
         // Confirm non-numeric per_page value returns default 8 products
-        $this->getJson('/products?per_page=-1')
+        $this->getJson('/products?per_page=randomstring')
             ->assertJson(fn (AssertableJson $json) =>
                 $json->has('data', 8)
                     ->etc()
@@ -383,10 +397,62 @@ class ProductsControllerTest extends TestCase
     }
 
     /** @test */
-    public function can_order_products_by_name_asc(){}
+    public function can_order_products_by_name_asc(){
+
+        // Note: display_name must not be set as presentation rules mean
+        // that depending on the values set the display_name or name can be
+        // displayed in the output.
+
+        $a_product = StoreProduct::factory()->create(["name" => "An ant ate apples", "display_name" => ""]);
+        $b_product = StoreProduct::factory()->create(["name" => "Billy bought bobbys boat", "display_name" => ""]);
+        $c_product = StoreProduct::factory()->create(['name' => "Cars can create chaos", "display_name" => ""]);
+
+        // Confirm can sort name (Asc)
+        $this->getJson("/products?sort=az")
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->has('links')
+                    ->has('meta')
+                    ->has('data', 3)
+                    ->has('data.0', fn ($json) =>
+                        $json->where('title', $a_product->name)->etc()
+                    )
+                    ->has('data.1', fn ($json) =>
+                        $json->where('title', $b_product->name)->etc()
+                    )
+                    ->has('data.2', fn ($json) =>
+                        $json->where('title', $c_product->name)->etc()
+                    )
+            );
+    }
 
     /** @test */
-    public function can_order_products_by_name_desc(){}
+    public function can_order_products_by_name_desc(){
+
+        // Note: display_name must not be set as presentation rules mean
+        // that depending on the values set the display_name or name can be
+        // displayed in the output.
+
+        $a_product = StoreProduct::factory()->create(["name" => "An ant ate apples", "display_name" => ""]);
+        $b_product = StoreProduct::factory()->create(["name" => "Billy bought bobbys boat", "display_name" => ""]);
+        $c_product = StoreProduct::factory()->create(['name' => "Cars can create chaos", "display_name" => ""]);
+
+        // Confirm can sort name (Desc)
+        $this->getJson("/products?sort=za")
+            ->assertJson(fn (AssertableJson $json) =>
+            $json->has('links')
+                ->has('meta')
+                ->has('data', 3)
+                ->has('data.0', fn ($json) =>
+                $json->where('title', $c_product->name)->etc()
+                )
+                ->has('data.1', fn ($json) =>
+                $json->where('title', $b_product->name)->etc()
+                )
+                ->has('data.2', fn ($json) =>
+                $json->where('title', $a_product->name)->etc()
+                )
+            );
+    }
 
     /** @test */
     public function products_default_ordered_when_no_sort_specified(){}
