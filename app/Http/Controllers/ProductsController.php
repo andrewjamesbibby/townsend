@@ -8,7 +8,6 @@ use App\Models\StoreProduct;
 
 class ProductsController extends Controller
 {
-
     public $storeId;
 
     private $per_page;
@@ -29,6 +28,7 @@ class ProductsController extends Controller
         $this->per_page = $request->get('per_page');
         $this->page = $request->get('page');
         $this->sort = $request->get('sort');
+        $this->preview_mode = session()->has('preview_mode');
     }
 
     /**
@@ -69,17 +69,22 @@ class ProductsController extends Controller
         return !is_numeric($page) || $page < 1 ? $default : $page;
     }
 
-    public function determineSort($sort = null, $section = null)
+    /**
+     * Determines sort column and direction from given sort string
+     *
+     * @param $sort
+     * @return string[]|null
+     */
+    public function determineSort($sort = null): ?array
     {
-        // TODO default value handling
         return match (strtolower($sort)) {
-            "az"    => ["name", "Asc"],
-            "za"    => ["name", "Desc"],
-            "low"   => ["price", "Asc"],
-            "high"  => ["price", "Desc"],
-            "old"   => ["release_date", "Asc"],
-            "new"   => ["release_date", "Desc"],
-             default => ["name", "Asc"]
+            "az"     => ["name", "Asc"],
+            "za"     => ["name", "Desc"],
+            "low"    => ["price", "Asc"],
+            "high"   => ["price", "Desc"],
+            "old"    => ["release_date", "Asc"],
+            "new"    => ["release_date", "Desc"],
+             default => ["name", "Asc"],
         };
     }
 
@@ -109,41 +114,31 @@ class ProductsController extends Controller
         $page = $this->determinePage($this->page);
         [$sort_field, $sort_direction] = $this->determineSort($this->sort);
 
+        // Determine geographic location
+        $geocode = $this->getGeocode()['country'];
+
         // Start query (eager load artist to prevent any n+1)
         $query = StoreProduct::with(['artist']);
 
-        // Constrain by section (section id or description)
-        if($section) {
-            $query->whereHas('sections', function ($query) use ($section) {
-                return $query->where(function($query) use ($section) {
-                    return $query->where("description", "like", $section)
-                                 ->orWhere('sections.id', '=', $section);
-                });
-            });
-        }
+        // Constrain by store
+        $query->forStore($this->storeId);
 
-        // Constrain by store and availability
-        $query->where('store_id', $this->storeId)
-              ->where('available',true)
-              ->where('deleted', false);
+        // Constrain by section (id or description)
+        $query->inSection($section);
+
+        // Only available (available, not deleted)
+        $query->available();
 
         // Products with future launch date should not be shown (unless in preview mode)
-        if(! session()->has('preview_mode')) {
-            $query->where(function($query) {
-                $query->where('launch_date', '=', '0000-00-00 00:00:00');
-                $query->orWhere('launch_date', '<', now());
-            });
+        if(! $this->preview_mode) {
+            $query->launched();
         }
 
         // Products with remove_date in the past should not be shown
-        $query->where(function($query) {
-           $query->where('remove_date', '=', '0000-00-00 00:00:00');
-           $query->orWhere('remove_date', '>', now());
-        });
+        $query->notRemoved();
 
         // Products disabled by geocode filtered out
-        $geoCode = $this->getGeocode()['country'];
-        $query->where("disabled_countries", "NOT LIKE", "%".$geoCode."%");
+        $query->excludeCountries($geocode);
 
         // Apply sorting constraints
         $query->orderBy($sort_field, $sort_direction);

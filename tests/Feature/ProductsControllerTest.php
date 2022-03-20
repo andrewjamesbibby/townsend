@@ -164,13 +164,22 @@ class ProductsControllerTest extends TestCase
                 $json->has('data', 0)
                     ->etc()
                 );
+    }
+
+    /** @test */
+    public function products_with_future_launch_date_returned_in_preview_mode()
+    {
+        // Create product with future launch date
+        StoreProduct::factory()->create([
+            "launch_date" => now()->addMonth()
+        ]);
 
         // Product is visible when in 'preview mode'
         $this->withSession(['preview_mode' => true])
             ->getJson('/products')
             ->assertJson(fn (AssertableJson $json) =>
-                $json->has('data', 1)
-                    ->etc()
+            $json->has('data', 1)
+                ->etc()
             );
     }
 
@@ -238,7 +247,7 @@ class ProductsControllerTest extends TestCase
         StoreProduct::factory(4)->create();
 
         // Display 2 pages with 2 records
-        $response = $this->getJson('/products?per_page=2&page=2')->dump();
+        $response = $this->getJson('/products?per_page=2&page=2');
 
         // Confirm that query parameter 'page' return requested page
         $this->assertTrue($response['meta']['current_page'] == 2);
