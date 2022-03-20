@@ -108,15 +108,10 @@ trait StoreProductScopes
      */
     public function scopeApplySort($query, ?string $field = null, ?string $direction = null)
     {
-        ray($field);
-        ray($direction);
-
         // Sort parameters provided, order by the given field/direction
         if($field && $direction) {
             return $query->orderBy($field, $direction);
         }
-
-        ray('applying default sort....');
 
         // Otherwise, default ordering for all results
         return $query->orderBy('store_products.position', 'ASC')
